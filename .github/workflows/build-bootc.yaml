@@ -113,7 +113,7 @@ jobs:
 
   verify-fedora:
     needs:
-      build-and-push-centos
+      build-and-push-fedora
     runs-on: ubuntu-latest
     container:
         image: quay.io/${{ github.actor }}/flightctl-agent-fedora:bootstrap
@@ -182,7 +182,7 @@ jobs:
 
   verify-rhel:
     needs:
-      build-and-push-centos
+      build-and-push-rhel
     runs-on: ubuntu-latest
     container:
         image: quay.io/${{ github.actor }}/flightctl-agent-rhel:bootstrap
