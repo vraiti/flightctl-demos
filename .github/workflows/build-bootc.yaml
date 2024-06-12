@@ -1,11 +1,9 @@
 name: "Build Bootc Agent Bootstrap Images"
 on:
-  pull_request_target:
-  schedule:
-    - cron: '0 */12 * * *'
+  workflow_dispatch
 
 env:
-  QUAY_ORG: quay.io/flightctl
+  QUAY_ORG: quay.io/${{ github.actor }}
 
 jobs:
   build-and-push-centos:
@@ -50,7 +48,7 @@ jobs:
           file: bootc-agent-images/centos/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: quay.io/flightctl/flightctl-agent-centos:bootstrap
+          tags: quay.io/${{ github.actor }}/flightctl-agent-centos:bootstrap
 
 
   build-and-push-fedora:
@@ -95,6 +93,6 @@ jobs:
           file: bootc-agent-images/fedora/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: quay.io/flightctl/flightctl-agent-fedora:bootstrap
+          tags: quay.io/${{ github.actor }}/flightctl-agent-fedora:bootstrap
 
 
