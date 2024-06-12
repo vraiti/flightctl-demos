@@ -50,6 +50,22 @@ jobs:
           push: true
           tags: quay.io/${{ github.actor }}/flightctl-agent-centos:bootstrap
 
+  verify-centos:
+    needs:
+      build-and-push-centos
+    runs-on: ubuntu-latest
+    container:
+        image: quay.io/${{ github.actor }}/flightctl-agent-centos:bootstrap
+        credentials:
+          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
+          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+
+    steps:
+      - name: Check for flightctl-agent
+        run: |
+          rpm -qa | grep flightctl-agent
+          exit $?
+
 
   build-and-push-fedora:
     runs-on: ubuntu-latest
@@ -94,6 +110,23 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: quay.io/${{ github.actor }}/flightctl-agent-fedora:bootstrap
+
+  verify-fedora:
+    needs:
+      build-and-push-centos
+    runs-on: ubuntu-latest
+    container:
+        image: quay.io/${{ github.actor }}/flightctl-agent-fedora:bootstrap
+        credentials:
+          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
+          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+
+    steps:
+      - name: Check for flightctl-agent
+        run: |
+          rpm -qa | grep flightctl-agent
+          exit $?
+
 
 
   build-and-push-rhel:
@@ -146,5 +179,21 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: quay.io/${{ github.actor }}/flightctl-agent-rhel:bootstrap
+
+  verify-rhel:
+    needs:
+      build-and-push-centos
+    runs-on: ubuntu-latest
+    container:
+        image: quay.io/${{ github.actor }}/flightctl-agent-rhel:bootstrap
+        credentials:
+          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
+          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+
+    steps:
+      - name: Check for flightctl-agent
+        run: |
+          rpm -qa | grep flightctl-agent
+          exit $?
 
 
