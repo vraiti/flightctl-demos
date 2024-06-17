@@ -4,5 +4,5 @@ metadata:
   name: demo-resourcesync
 spec:
   repository: demo-repo
-  path: /config/fleet.yaml
+  path: /fleet-defs/fleet.yaml
   targetRevision: local-demo

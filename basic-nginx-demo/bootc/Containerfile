@@ -1,4 +1,4 @@
-FROM quay.io/flightctl/flightctl-agent-centos:bootstrap
+FROM quay.io/vraiti/flightctl-agent-centos:bootstrap
 
 ADD etc etc
 
