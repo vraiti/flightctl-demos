@@ -1,0 +1,6 @@
+apiVersion: v1alpha1
+kind: Device
+metadata:
+  name: 2391262f769eb52a04bdedd276ed5e2fdedda471490954a80219c492d549365d
+  labels:
+    fleet: demo-fleet
