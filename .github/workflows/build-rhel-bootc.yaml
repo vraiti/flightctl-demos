@@ -3,7 +3,7 @@ on:
   workflow_dispatch
 env:
   REGISTRY: quay.io
-  REPOSITORY: ${{ github.actor }}
+  REGISTRY_USER: ${{ github.actor }}
 
 jobs:
   build-and-push-rhel:
@@ -64,24 +64,12 @@ jobs:
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: localhost:5000/flightctl-agent-rhel:bootstrap
-
-      - name: Get image ID
-        env:
-          ID: ${{ steps.build.outputs.imageid }}
-        id: get-imageid
-        run: |
-          imageid=${ID:7}
-          echo "hex-imageid=$imageid" >> "$GITHUB_OUTPUT"
-
-      - name: Show ID
-        run: |
-          echo ${{ steps.get-imageid.outputs.hex-imageid }}
+          tags: localhost:5000/user/flightctl-agent-rhel:bootstrap
 
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
         with:
-          image: ${{ steps.get-imageid.outputs.hex-imageid }}
+          image: localhost:5000/user/flightctl-agent-rhel:bootstrap
           run: |
             rpm -qa | grep flightctl-agent
             exit $?
