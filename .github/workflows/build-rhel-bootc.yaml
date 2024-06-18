@@ -74,6 +74,10 @@ jobs:
           imageid=${ID:7}
           echo "hex-imageid=$imageid" >> "$GITHUB_OUTPUT"
 
+      - name: Show ID
+        run: |
+          echo ${{ steps.get-imageid.outputs.hex-imageid }}
+
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
         with:
