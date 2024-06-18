@@ -71,7 +71,9 @@ jobs:
           ID: ${{ steps.build.outputs.imageid }}
         id: get-imageid
         run: |
-          echo imageid=${ID:7:256} >> "$GITHUB_OUTPUT"
+          imageid=${ID:7}
+          echo $imageid
+          echo imageid=$imageid >> "$GITHUB_OUTPUT"
 
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
