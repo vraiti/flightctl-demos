@@ -48,3 +48,30 @@ jobs:
           username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
           password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
+      - name: Build RHEL image
+        uses: docker/build-push-action@v2
+        with:
+          context: bootc-agent-images/rhel
+          file: bootc-agent-images/rhel/Containerfile
+          platforms: linux/amd64,linux/arm64
+          load: true
+          tags: flightctl-agent-rhel:bootstrap
+
+      - name: Test Fedora image
+        uses: addnab/docker-run-action@v3
+        with:
+          image: flightctl-agent-rhel:bootstrap
+          run: |
+            rpm -qa | grep flightctl-agent
+            exit $?
+
+      - name: Push Fedora image
+        uses: docker/build-push-action@v2
+        with:
+          context: bootc-agent-images/rhel
+          file: bootc-agent-images/rhel/Containerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-rhel:bootstrap
+
+

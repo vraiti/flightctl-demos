@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: quay.io
-  REPOSITORY: ${{ github.actor }}
+  REGISTRY_USER: ${{ github.actor }}
 
 jobs:
   build-and-push-centos:
@@ -44,15 +44,31 @@ jobs:
           username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
           password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
-      - name: Build and push
+      - name: Build CentOS image
+        uses: docker/build-push-action@v2
+        with:
+          context: bootc-agent-images/centos
+          file: bootc-agent-images/centos/Containerfile
+          platforms: linux/amd64,linux/arm64
+          load: true
+          tags: flightctl-agent-centos:bootstrap
+
+      - name: Test CentOS image
+        uses: addnab/docker-run-action@v3
+        with:
+          image: flightctl-agent-centos:bootstrap
+          run: |
+            rpm -qa | grep flightctl-agent
+            exit $?
+
+      - name: Push CentOS image
         uses: docker/build-push-action@v2
         with:
           context: bootc-agent-images/centos
           file: bootc-agent-images/centos/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/flightctl-agent-centos:bootstrap
-
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-centos:bootstrap
 
   build-and-push-fedora:
     runs-on: ubuntu-latest
@@ -89,13 +105,30 @@ jobs:
           username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
           password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
-      - name: Build and push
+      - name: Build Fedora image
+        uses: docker/build-push-action@v2
+        with:
+          context: bootc-agent-images/fedora
+          file: bootc-agent-images/fedora/Containerfile
+          platforms: linux/amd64,linux/arm64
+          load: true
+          tags: flightctl-agent-fedora:bootstrap
+
+      - name: Test Fedora image
+        uses: addnab/docker-run-action@v3
+        with:
+          image: flightctl-agent-fedora:bootstrap
+          run: |
+            rpm -qa | grep flightctl-agent
+            exit $?
+
+      - name: Push Fedora image
         uses: docker/build-push-action@v2
         with:
           context: bootc-agent-images/fedora
           file: bootc-agent-images/fedora/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/flightctl-agent-fedora:bootstrap
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-fedora:bootstrap
 
 
