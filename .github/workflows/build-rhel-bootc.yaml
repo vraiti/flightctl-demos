@@ -66,13 +66,17 @@ jobs:
           push: true
           tags: localhost:5000/flightctl-agent-rhel:bootstrap
 
-      - name: Show available images
-        run: docker images
+      - name: Get image ID
+        env:
+          ID: ${{ steps.build.outputs.imageid }}
+        id: get-imageid
+        run: |
+          echo imageid=${ID:7:256} >> "$GITHUB_OUTPUT"
 
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
         with:
-          image: ${{ steps.build.outputs.imageid }}
+          image: ${{ steps.get-imageid.outputs.imageid }}
           run: |
             rpm -qa | grep flightctl-agent
             exit $?
