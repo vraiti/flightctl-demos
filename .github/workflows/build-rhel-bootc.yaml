@@ -9,6 +9,12 @@ jobs:
   build-and-push-rhel:
     runs-on: ubuntu-latest
 
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -29,10 +35,12 @@ jobs:
           popd
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
 
       - name: Login to registry.redhat.io
         uses: docker/login-action@v3
@@ -49,21 +57,26 @@ jobs:
           password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
       - name: Build RHEL image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
-          tags: flightctl-agent-rhel:bootstrap
+          push: true
+          tags: localhost:5000/flightctl-agent-rhel:bootstrap
 
       - name: Show available images
         run: docker images
 
       - name: Test RHEL image
-        run: |
-          docker run flightctl-agent-rhel:bootstrap "rpm -qa | grep flightctl-agent; exit $?"
+        uses: addnab/docker-run-action@v3
+        with:
+          image: flightctl-agent-rhel:bootstrap
+          run: |
+            rpm -qa | grep flightctl-agent
+            exit $?
 
-      - name: Push Fedora image
+      - name: Push RHEL image
         uses: docker/build-push-action@v2
         with:
           context: bootc-agent-images/rhel
