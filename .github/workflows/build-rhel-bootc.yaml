@@ -56,13 +56,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: flightctl-agent-rhel:bootstrap
 
-      - name: Test Fedora image
-        uses: addnab/docker-run-action@v3
-        with:
-          image: flightctl-agent-rhel:bootstrap
-          run: |
-            rpm -qa | grep flightctl-agent
-            exit $?
+      - name: Show available images
+        run: docker images
+
+      - name: Test RHEL image
+        run: |
+          docker run flightctl-agent-rhel:bootstrap "rpm -qa | grep flightctl-agent; exit $?"
 
       - name: Push Fedora image
         uses: docker/build-push-action@v2
