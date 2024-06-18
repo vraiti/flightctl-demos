@@ -54,7 +54,6 @@ jobs:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
-          load: true
           tags: flightctl-agent-rhel:bootstrap
 
       - name: Test Fedora image

@@ -50,7 +50,6 @@ jobs:
           context: bootc-agent-images/centos
           file: bootc-agent-images/centos/Containerfile
           platforms: linux/amd64,linux/arm64
-          load: true
           tags: flightctl-agent-centos:bootstrap
 
       - name: Test CentOS image
@@ -111,7 +110,6 @@ jobs:
           context: bootc-agent-images/fedora
           file: bootc-agent-images/fedora/Containerfile
           platforms: linux/amd64,linux/arm64
-          load: true
           tags: flightctl-agent-fedora:bootstrap
 
       - name: Test Fedora image
