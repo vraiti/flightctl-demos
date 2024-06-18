@@ -57,7 +57,8 @@ jobs:
           password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
       - name: Build RHEL image
-        uses: docker/build-push-action@v6
+        id: build
+        uses: docker/build-push-action@v5
         with:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
@@ -71,7 +72,7 @@ jobs:
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
         with:
-          image: flightctl-agent-rhel:bootstrap
+          image: ${{ steps.build.outputs.imageid }}
           run: |
             rpm -qa | grep flightctl-agent
             exit $?
