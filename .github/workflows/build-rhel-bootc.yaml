@@ -72,13 +72,12 @@ jobs:
         id: get-imageid
         run: |
           imageid=${ID:7}
-          echo $imageid
-          echo imageid=$imageid >> "$GITHUB_OUTPUT"
+          echo "hex-imageid=$imageid" >> "$GITHUB_OUTPUT"
 
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
         with:
-          image: ${{ steps.get-imageid.outputs.imageid }}
+          image: ${{ steps.get-imageid.outputs.hex-imageid }}
           run: |
             rpm -qa | grep flightctl-agent
             exit $?
