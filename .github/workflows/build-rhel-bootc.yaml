@@ -58,7 +58,6 @@ jobs:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
-          push: true
           tags: user/flightctl-agent:test
 
       - name: Show images
