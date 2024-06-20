@@ -67,15 +67,10 @@ jobs:
 
       - name: Test RHEL image again
         run: |
-          ID=$(docker create ${{ steps.build.outputs.imageid }} /verify.sh)
-          
-          echo "#!/bin/sh" >> verify.sh
-          echo "rpm -qa | grep flightctl-agent" >> verify.sh
-          echo "exit $?" >> verify.sh
-          chmod +x verify.sh
-
-          docker cp verify.sh $ID:/
-          docker start $ID
+          ID=$(docker create ${{ steps.build.outputs.imageid }} /verify-flightctl-agent.sh)
+          docker cp .github/workflow-scripts/verify-flightctl-agent.sh $ID:/
+          docker start -a $ID
+          docker inspect $ID
           exit $(docker inspect $ID --format='{{.State.ExitCode}}')
 
       - name: Push RHEL image
