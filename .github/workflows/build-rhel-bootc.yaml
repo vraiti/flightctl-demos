@@ -62,9 +62,8 @@ jobs:
         with:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: localhost:5000/user/flightctl-agent-rhel:bootstrap
+          load: true
+          tags: user/flightctl-agent:testing
 
       - name: Show images
         run: |
@@ -82,7 +81,6 @@ jobs:
           docker start $ID
           docker ps --all | grep "Exited (0)"
           exit $?
-
 
       - name: Push RHEL image
         uses: docker/build-push-action@v2
