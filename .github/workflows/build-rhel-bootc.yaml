@@ -3,23 +3,21 @@ on:
   workflow_dispatch
 env:
   REGISTRY: quay.io
-  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_USERNAME: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
+  REGISTRY_PASSWORD: ${{ secrest.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+
+  RH_REGISTRY_USERNAME: ${{ secrets.RH_REGISTRY_USERNAME }}
+  RH_REGISTRY_PASSWORD: ${{ secrets.RH_REGISTRY_PASSWORD }}
 
 jobs:
   build-and-push-rhel:
     runs-on: ubuntu-latest
 
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Modify RHEL Containerfile
+      - name: Modify Containerfile
         run: |
           pushd bootc-agent-images/rhel
           echo "${{ secrets.FLIGHTCTL_RSA_PUB }}" > flightctl_rsa.pub
@@ -46,39 +44,37 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: registry.redhat.io
-          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
-          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+          username: ${{ env.RH_REGISTRY_USERNAME }}
+          password: ${{ env.RH_REGISTRY_PASSWORD }}
 
       - name: Login to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
-          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
 
-      - name: Build RHEL image
-        id: build
+      - name: Build image
         uses: docker/build-push-action@v5
         with:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: localhost:5000/user/flightctl-agent-rhel:bootstrap
+          tags: user/flightctl-agent:test
 
-      - name: Test RHEL image
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localhost:5000/user/flightctl-agent-rhel:bootstrap
-          run: |
-            rpm -qa | grep flightctl-agent
-            exit $?
+      - name: Test image
+        run: |
+          docker run --rm user/flightctl-agent:test "\
+            rpm -qa | grep flightctl-agent ;\
+            exit $? ;\
+          "
+          exit $?
 
-      - name: Push RHEL image
+      - name: Push image
         uses: docker/build-push-action@v2
         with:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-rhel:bootstrap
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USERNAME }}/flightctl-agent-rhel:bootstrap
