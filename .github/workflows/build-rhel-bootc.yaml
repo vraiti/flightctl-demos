@@ -53,11 +53,12 @@ jobs:
           password: ${{ env.REGISTRY_PASSWORD }}
 
       - name: Build image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: bootc-agent-images/rhel
           file: bootc-agent-images/rhel/Containerfile
           platforms: linux/amd64,linux/arm64
+          load: true
           tags: user/flightctl-agent:test
 
       - name: Test image
