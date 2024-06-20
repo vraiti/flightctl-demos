@@ -66,6 +66,10 @@ jobs:
           push: true
           tags: localhost:5000/user/flightctl-agent-rhel:bootstrap
 
+      - name: Show images
+        run: |
+          docker images
+
       - name: Test RHEL image
         uses: addnab/docker-run-action@v3
         with:
@@ -76,10 +80,15 @@ jobs:
 
       - name: Test RHEL image again
         run: |
-          docker run --rm localhost:5000/user/flightctl-agent-rhel:bootstrap "\
-            rpm -qa | grep flightctl-agent ;\
-            exit $? ;\
-          "
+          ID=$(docker create localhost:5000/user/flightctl-agent:bootstrap /verify.sh)
+          
+          echo "#!/bin/sh" >> verify.sh
+          echo "rpm -qa | grep flightctl-agent" >> verify.sh
+          echo "exit $?" >> verify.sh
+          
+          cp verify.sh $ID:/
+          docker start $ID
+          docker ps --all | grep "Exited (0)"
           exit $?
 
 
