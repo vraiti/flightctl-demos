@@ -6,7 +6,8 @@ on:
 
 env:
   REGISTRY: quay.io
-  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_USERNAME: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
+  REGISTRY_PASSWORD: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
 jobs:
   build-and-push:
@@ -15,12 +16,6 @@ jobs:
     strategy:
       matrix:
         flavor: [centos,fedora]
-
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
 
     steps:
       - name: Checkout
@@ -46,34 +41,37 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
 
       - name: Login to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
-          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
 
-      - name: Build CentOS image
+      - name: Build image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: bootc-agent-images/${{ matrix.flavor }}
           file: bootc-agent-images/${{ matrix.flavor }}/Containerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: localhost:5000/user/flightctl-agent-${{ matrix.flavor }}:bootstrap
+          load: true
+          tags: user/flightctl-agent:test
 
-      - name: Test CentOS image
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localhost:5000/user/flightctl-agent-${{ matrix.flavor }}:bootstrap
-          run: |
-            rpm -qa | grep flightctl-agent
-            exit $?
+      - name: Test image
+        run: |
+          ID=$(docker create ${{ steps.build.outputs.imageid }} /verify.sh)
+          
+          echo "#!/bin/sh" >> verify.sh
+          echo "rpm -qa | grep flightctl-agent" >> verify.sh
+          echo "exit $?" >> verify.sh
+          chmod +x verify.sh
 
-      - name: Push CentOS image
+          docker cp verify.sh $ID:/
+          docker start $ID
+          exit $(docker inspect $ID --format='{{.State.ExitCode}}')
+
+      - name: Push image
         uses: docker/build-push-action@v2
         with:
           context: bootc-agent-images/${{ matrix.flavor }}
