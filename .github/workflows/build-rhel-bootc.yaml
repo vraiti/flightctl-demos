@@ -77,10 +77,9 @@ jobs:
           echo "rpm -qa | grep flightctl-agent" >> verify.sh
           echo "exit $?" >> verify.sh
           
-          cp verify.sh $ID:/
+          docker cp verify.sh $ID:/
           docker start $ID
-          docker ps --all | grep "Exited (0)"
-          exit $?
+          exit $(docker inspect $ID --format='{{.State.ExitCode}}')
 
       - name: Push RHEL image
         uses: docker/build-push-action@v2
