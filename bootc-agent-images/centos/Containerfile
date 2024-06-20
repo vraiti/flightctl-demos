@@ -1,8 +1,8 @@
 FROM quay.io/centos-bootc/centos-bootc:stream9
 ADD etc etc
 
-RUN dnf install -y flightctl-agent && \
-    systemctl enable flightctl-agent.service
+# RUN dnf install -y flightctl-agent && \
+#     systemctl enable flightctl-agent.service
 
 ## Uncomment to add your own ssh key
 # COPY flightctl_rsa.pub /usr/etc-system/root.keys

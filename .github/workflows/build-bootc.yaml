@@ -78,5 +78,5 @@ jobs:
           file: bootc-agent-images/${{ matrix.flavor }}/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-${{ matrix.flavor }}:bootstrap
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USERNAME }}/flightctl-agent-${{ matrix.flavor }}:bootstrap
 
