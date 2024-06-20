@@ -9,8 +9,13 @@ env:
   REGISTRY_USER: ${{ github.actor }}
 
 jobs:
-  build-and-push-centos:
+  build-and-push:
     runs-on: ubuntu-latest
+  
+    strategy:
+      matrix:
+        flavor: [centos,fedora]
+
     services:
       registry:
         image: registry:2
@@ -21,9 +26,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Modify CentOS Containerfile
+      - name: Modify Containerfile
         run: |
-          pushd bootc-agent-images/centos
+          pushd bootc-agent-images/${{ matrix.flavor }}
           echo "${{ secrets.FLIGHTCTL_RSA_PUB }}" > flightctl_rsa.pub
           sed -i -e 's/^# COPY flightctl_rsa.pub \/usr\/etc-system\/root.keys/COPY flightctl_rsa.pub \/usr\/etc-system\/root.keys/' \
                  -e 's/^# RUN touch \/etc\/ssh\/sshd_config.d\/30-auth-system.conf;/RUN touch \/etc\/ssh\/sshd_config.d\/30-auth-system.conf;/' \
@@ -54,16 +59,16 @@ jobs:
       - name: Build CentOS image
         uses: docker/build-push-action@v5
         with:
-          context: bootc-agent-images/centos
-          file: bootc-agent-images/centos/Containerfile
+          context: bootc-agent-images/${{ matrix.flavor }}
+          file: bootc-agent-images/${{ matrix.flavor }}/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: localhost:5000/user/flightctl-agent-centos:bootstrap
+          tags: localhost:5000/user/flightctl-agent-${{ matrix.flavor }}:bootstrap
 
       - name: Test CentOS image
         uses: addnab/docker-run-action@v3
         with:
-          image: localhost:5000/user/flightctl-agent-centos:bootstrap
+          image: localhost:5000/user/flightctl-agent-${{ matrix.flavor }}:bootstrap
           run: |
             rpm -qa | grep flightctl-agent
             exit $?
@@ -71,78 +76,9 @@ jobs:
       - name: Push CentOS image
         uses: docker/build-push-action@v2
         with:
-          context: bootc-agent-images/centos
-          file: bootc-agent-images/centos/Containerfile
+          context: bootc-agent-images/${{ matrix.flavor }}
+          file: bootc-agent-images/${{ matrix.flavor }}/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-centos:bootstrap
-
-  build-and-push-fedora:
-    runs-on: ubuntu-latest
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Modify Fedora Containerfile
-        run: |
-          pushd bootc-agent-images/fedora
-          echo "${{ secrets.FLIGHTCTL_RSA_PUB }}" > flightctl_rsa.pub
-          sed -i -e 's/^# COPY flightctl_rsa.pub \/usr\/etc-system\/root.keys/COPY flightctl_rsa.pub \/usr\/etc-system\/root.keys/' \
-                 -e 's/^# RUN touch \/etc\/ssh\/sshd_config.d\/30-auth-system.conf;/RUN touch \/etc\/ssh\/sshd_config.d\/30-auth-system.conf;/' \
-                 -e 's/^#     mkdir -p \/usr\/etc-system\/;/    mkdir -p \/usr\/etc-system\/;/' \
-                 -e 's/^#     echo '\''AuthorizedKeysFile \/usr\/etc-system\/%u.keys'\'' >> \/etc\/ssh\/sshd_config.d\/30-auth-system.conf;/    echo '\''AuthorizedKeysFile \/usr\/etc-system\/%u.keys'\'' >> \/etc\/ssh\/sshd_config.d\/30-auth-system.conf;/' \
-                 -e 's/^#     chmod 0600 \/usr\/etc-system\/root.keys/    chmod 0600 \/usr\/etc-system\/root.keys/' \
-                 -e 's/^# VOLUME \/var\/roothome/VOLUME \/var\/roothome/' Containerfile
-          echo "${{ secrets.CA_CRT }}" > ca.crt
-          echo "${{ secrets.CLIENT_ENROLLMENT_CRT }}" > client-enrollment.crt
-          echo "${{ secrets.CLIENT_ENROLLMENT_KEY }}" > client-enrollment.key
-          popd
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-
-      - name: Login to registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
-          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
-
-      - name: Build Fedora image
-        uses: docker/build-push-action@v5
-        with:
-          context: bootc-agent-images/fedora
-          file: bootc-agent-images/fedora/Containerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: localhost:5000/user/flightctl-agent-fedora:bootstrap
-
-      - name: Test Fedora image
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localhost:5000/user/flightctl-agent-fedora:bootstrap
-          run: |
-            rpm -qa | grep flightctl-agent
-            exit $?
-
-      - name: Push Fedora image
-        uses: docker/build-push-action@v2
-        with:
-          context: bootc-agent-images/fedora
-          file: bootc-agent-images/fedora/Containerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-fedora:bootstrap
-
+          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/flightctl-agent-${{ matrix.flavor }}:bootstrap
 
