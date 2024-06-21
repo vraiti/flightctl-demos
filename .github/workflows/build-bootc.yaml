@@ -6,11 +6,6 @@ on:
 
 env:
   REGISTRY: quay.io
-  REGISTRY_USERNAME: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
-  REGISTRY_PASSWORD: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
-
-  RH_REGISTRY_USERNAME: ${{ secrets.RH_REGISTRY_USERNAME }}
-  RH_REGISTRY_PASSWORD: ${{ secrets.RH_REGISTRY_PASSWORD }}
 
 jobs:
   build-and-push:
@@ -49,15 +44,15 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: registry.redhat.io
-          username: ${{ env.RH_REGISTRY_USERNAME }}
-          password: ${{ env.RH_REGISTRY_PASSWORD }}
+          username: ${{ secrets.RH_REGISTRY_USERNAME }}
+          password: ${{ secrets.RH_REGISTRY_PASSWORD }}
 
       - name: Login to registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ env.REGISTRY_USERNAME }}
-          password: ${{ env.REGISTRY_PASSWORD }}
+          username: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}
+          password: ${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_PASSWORD }}
 
       - name: Build image
         id: build
@@ -82,5 +77,5 @@ jobs:
           file: bootc-agent-images/${{ matrix.flavor }}/Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REGISTRY_USERNAME }}/flightctl-agent-${{ matrix.flavor }}:bootstrap
+          tags: ${{ env.REGISTRY }}/${{ secrets.QUAY_FLIGHTCTL_INFRA_ROBOT_USERNAME }}/flightctl-agent-${{ matrix.flavor }}:bootstrap
 
